@@ -78,11 +78,11 @@ for i in range(9):
         I[i][j] = VAL
         I[j][i] = VAL
 
-COV=np.linalg.inv(I)
-
 import time
 start_time = time.time()
-print(COV)
+COV=np.linalg.inv(I)
 end_time = time.time()
 totalseconds=end_time - start_time
 print(f"Time taken: {totalseconds//60} m, {totalseconds%60} s.")
+
+print(COV)
