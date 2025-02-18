@@ -3,6 +3,7 @@
 import numpy as np
 from iminuit import Minuit
 from numba import njit
+import time
 np.set_printoptions(precision=19)
 np.random.seed(6)
 
@@ -56,7 +57,7 @@ N=10000000
 #Parameter values
 Px = 0.0
 Py = 0.0
-Pz = 0.90     # Xi      #anti-Xi
+Pz = 0.10     # Xi      #anti-Xi
 aXi=-0.376    #-0.376   # 0.371
 aL = 0.757    # 0.757   #-0.763
 pXi= 0.011    # 0.011   #-0.021
@@ -83,8 +84,14 @@ m.limits["Pz"] = (-1.0, 1.0)
 m.limits["aXi"] = (-1.0, 1.0)
 m.limits["aL"]  = (-1.0, 1.0)
 m.limits["pXi"] = (-np.pi, np.pi)
+
+start_time = time.time()
 m.migrad()                  #Migrad minimization
 m.hesse()                   #Hesse algorithm
+end_time = time.time()
+totalseconds=end_time - start_time
+print(f"Time taken: {totalseconds//60} m, {totalseconds%60} s.")
+
 print(m.values)
 print(m.errors)
 print(m.covariance)
