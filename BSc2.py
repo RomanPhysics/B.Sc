@@ -3,6 +3,8 @@
 import jax.numpy as np
 from jax import grad, jit
 import vegas
+import time
+import numpy as npp
 
 @jit
 def PDF(theta_Xi, phi_Xi, theta_L, phi_L, theta_p, phi_p, theta_BL, phi_BL, theta_Bp, phi_Bp, aPsi, Dphi, Pe, aXi, aBXi, aL, aBL, pXi, pBXi):
@@ -47,40 +49,38 @@ def PDF(theta_Xi, phi_Xi, theta_L, phi_L, theta_p, phi_p, theta_BL, phi_BL, thet
     return (1/(4*np.pi)**5)*SUM[0]
 
 
-
-def fishercomponent(i, j):
-    par = np.array([0.586, 1.213, 0.5, -0.376, 0.371, 0.757, -0.763, 0.011, -0.021])
+def fishermatrix():
+    I = npp.zeros((9, 9))
+    global par
     dPdomega = [grad(PDF, argnums=10), grad(PDF, argnums=11), grad(PDF, argnums=12), grad(PDF, argnums=13),
                 grad(PDF, argnums=14), grad(PDF, argnums=15), grad(PDF, argnums=16), grad(PDF, argnums=17),
                 grad(PDF, argnums=18)]
 
-    @jit
-    def integrand(x):
-        return (1 / PDF(*x, *par)) \
-            * dPdomega[i](*x, *par) \
-            * dPdomega[j](*x, *par) \
-            * np.sin(x[0]) * np.sin(x[2]) * np.sin(x[4]) * np.sin(x[6]) * np.sin(x[8])
-
     integ = vegas.Integrator([[0, np.pi], [-np.pi, np.pi], [0, np.pi], [-np.pi, np.pi], [0, np.pi], [-np.pi, np.pi], [0, np.pi], [-np.pi, np.pi], [0, np.pi], [-np.pi, np.pi]])
-    integ(integrand, nitn=10, neval=1000000)
-    intval=integ(integrand, nitn=15, neval=1000000)
+    for i in range(9):
+        for j in range(9):
+            if j < i:
+                continue
 
-    return intval.mean
+            @jit
+            def integrand(x):
+                return (1 / PDF(*x, *par)) \
+                    * dPdomega[i](*x, *par) \
+                    * dPdomega[j](*x, *par) \
+                    * np.sin(x[0]) * np.sin(x[2]) * np.sin(x[4]) * np.sin(x[6]) * np.sin(x[8])
 
+            integ(integrand, nitn=10, neval=1000000)
+            intval=integ(integrand, nitn=10, neval=1000000)
+            print(intval.mean)
+            I[i][j] = intval.mean
+            I[j][i] = intval.mean
 
-I = np.zeros((9, 9))
+    return I
 
-for i in range(9):
-    for j in range(9):
-        if j < i:
-            continue
-        VAL = fishercomponent(i, j)
-        I[i][j] = VAL
-        I[j][i] = VAL
+par = np.array([0.586, 1.213, 0.5, -0.376, 0.371, 0.757, -0.763, 0.011, -0.021])
 
-import time
 start_time = time.time()
-COV=np.linalg.inv(I)
+COV=np.linalg.inv(fishermatrix())
 end_time = time.time()
 totalseconds=end_time - start_time
 print(f"Time taken: {totalseconds//60} m, {totalseconds%60} s.")
