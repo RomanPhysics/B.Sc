@@ -70,7 +70,7 @@ N=10000000
 #Parameter values
 Px = 0.0
 Py = 0.0
-Pz = 0.10     # Xi      #anti-Xi
+Pz = 0.80     # Xi      #anti-Xi
 aXi=-0.376    #-0.376   # 0.371
 aL = 0.757    # 0.757   #-0.763
 pXi= 0.011    # 0.011   #-0.021
