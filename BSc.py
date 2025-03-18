@@ -10,7 +10,7 @@ np.random.seed(6)
 
 #-----------------------------------------------------------------------------------------------------------------------
 #Probabiliy Distribution Function
-@njit
+@njit(fastmath=True)
 def PDF(costL, pL, costp, pp, Px, Py, Pz, aXi, aL, pXi):
     sintL = np.sqrt(1.0 - costL * costL)
     Lx = sintL*np.cos(pL)
@@ -43,7 +43,7 @@ def PDF(costL, pL, costp, pp, Px, Py, Pz, aXi, aL, pXi):
     return pdf
 
 #Monte-Carlo Generation
-@njit
+@njit(fastmath=True)
 def MonteCarlo(n, Px, Py, Pz, aXi, aL, pXi):
     data = np.empty((n, 4))
     count = 0
