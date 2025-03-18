@@ -85,9 +85,9 @@ def fishermatrix():
 
             integ(integrand, nitn=5, neval=1000000)
             intval=integ(integrand, nitn=10, neval=1000000)
-            print(f"Fisher element I[{i+1},{j+1}] = {intval.mean}")
-            I[i][j] = intval.mean
-            I[j][i] = intval.mean
+            print(f"Fisher element I[{i-9},{j-9}] = {intval.mean}")
+            I[i-10][j-10] = intval.mean
+            I[j-10][i-10] = intval.mean
 
     return I
 
