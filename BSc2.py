@@ -66,32 +66,33 @@ def dPdomega(theta_Xi, phi_Xi, theta_L, phi_L, theta_p, phi_p, theta_BL, phi_BL,
 
     return dPDF
 
-@njit(fastmath=True)
-def integrand(x, aPsi, Dphi, Pe, aXi, aBXi, aL, aBL, pXi, pBXi, i, j):
-    return (1 / PDF(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], aPsi, Dphi, Pe, aXi, aBXi, aL, aBL, pXi, pBXi)) \
-        * dPdomega(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], aPsi, Dphi, Pe, aXi, aBXi, aL, aBL, pXi, pBXi, i) \
-        * dPdomega(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], aPsi, Dphi, Pe, aXi, aBXi, aL, aBL, pXi, pBXi, j) \
-        * np.sin(x[0]) * np.sin(x[2]) * np.sin(x[4]) * np.sin(x[6]) * np.sin(x[8])
-
-@njit(parallel=True)
 def fishermatrix():
     I = np.zeros((9, 9))
-    aPsi, Dphi, Pe, aXi, aBXi, aL, aBL, pXi, pBXi = 0.586, 1.213, 0.5, -0.376, 0.371, 0.757, -0.763, 0.011, -0.021
+    global par
     
     bounds = [[0, np.pi], [-np.pi, np.pi]] * 5
     integ = vegas.Integrator(bounds)
 
     for i in prange(10, 19):
         for j in prange(i, 19):
-            
+
+            @njit(fastmath=True)
+            def integrand(x):
+                return (1 / PDF(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], par[0], par[1], par[2], par[3], par[4], par[5], par[6], par[7], par[8])) \
+                    * dPdomega(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], par[0], par[1], par[2], par[3], par[4], par[5], par[6], par[7], par[8], i) \
+                    * dPdomega(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], par[0], par[1], par[2], par[3], par[4], par[5], par[6], par[7], par[8], j) \
+                    * np.sin(x[0]) * np.sin(x[2]) * np.sin(x[4]) * np.sin(x[6]) * np.sin(x[8])
 
             integ(integrand, nitn=5, neval=1000000)
             intval=integ(integrand, nitn=10, neval=1000000)
-            print(f"Fisher element I[{i-9},{j-9}] = {intval.mean}")
-            I[i-10][j-10] = intval.mean
-            I[j-10][i-10] = intval.mean
+            print(f"Fisher element I[{i+1},{j+1}] = {intval.mean}")
+            I[i][j] = intval.mean
+            I[j][i] = intval.mean
 
     return I
+
+#               aPsi,   Dphi,  Pe,   aXi,   aBXi,  aL,     aBL,   pXi,    pBXi
+par = np.array([0.586, 1.213, 0.5, -0.376, 0.371, 0.757, -0.763, 0.011, -0.021])
 
 start_time = time.time()
 COV = np.linalg.inv(fishermatrix())
